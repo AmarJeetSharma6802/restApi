@@ -1,0 +1,37 @@
+import { v2 as cloudinary } from "cloudinary";
+import fs from "fs/promises";  // Use fs.promises for async operations
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDNARY_NAME,
+    api_key: process.env.CLOUDNARY_API_KEY,
+    api_secret: process.env.CLOUDNARY_API_SECRET,
+});
+
+const uploadOnCloudinary = async (localFilePath) => {
+    try {
+        if (!localFilePath) return null;
+
+        // Upload the image to Cloudinary
+        const response = await cloudinary.uploader.upload(localFilePath, {
+            resource_type: "auto", // Automatically handles different types of files (image, video, etc.)
+        });
+
+        // Asynchronously remove the local file after successful upload
+        await fs.unlink(localFilePath);
+        return response;
+    } catch (error) {
+        console.error("Cloudinary upload error:", error);
+        // Ensure the local file is deleted if upload fails
+        try {
+            await fs.unlink(localFilePath);  // Attempt to delete the local file
+        } catch (err) {
+            console.error("Error deleting local file:", err);
+        }
+        return null;
+    }
+};
+
+export { uploadOnCloudinary };
