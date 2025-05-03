@@ -4,12 +4,14 @@ import {uploadOnCloudinary} from "../utils/cloudinary.js"
 const GetItem = async(req,res)=>{
     const findItem = await RestApi.find()
     
-    res.json(findItem).status(200)
+    res.status(200).json(findItem)
+
 }
 
 const UploadItem = async (req, res) => {
     const { name, price } = req.body;
     const file = req.file;
+    console.log("file :" , file)
 
     if (!file) {
         return res.status(400).json({ error: "Image is required" });
@@ -21,6 +23,7 @@ const UploadItem = async (req, res) => {
 
     // Upload image to Cloudinary
     const uploadImage = await uploadOnCloudinary(file.path);
+    console.log("uploadImage : ", uploadImage)
 
     if (!uploadImage) {
         return res.status(500).json({ error: "Upload failed" });

@@ -3,7 +3,8 @@ import multer from "multer"
 
 const storage = multer.diskStorage({
     destination :function(req,fil,cb){
-        cb(null ,"./public/temp")
+        // cb(null ,"./public/temp")
+        cb(null, os.tmpdir());
     },
     filename: function(req,file,cb){
         // cb(null, `${Date.now()}-${file.originalname}`); // Unique filename
