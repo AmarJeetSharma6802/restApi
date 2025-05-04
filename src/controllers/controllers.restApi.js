@@ -8,10 +8,40 @@ const GetItem = async(req,res)=>{
 
 }
 
+// const UploadItem = async (req, res) => {
+//     const { name, price } = req.body;
+//     const file = req.file;
+//     console.log("file :" , file)
+
+//     if (!file) {
+//         return res.status(400).json({ error: "Image is required" });
+//     }
+
+//     if (!name || !price) {
+//         return res.status(400).json({ message: "Name and price are required" });
+//     }
+
+//     // Upload image to Cloudinary
+//     const uploadImage = await uploadOnCloudinary(file.path);
+//     console.log("uploadImage : ", uploadImage)
+
+//     if (!uploadImage) {
+//         return res.status(500).json({ error: "Upload failed" });
+//     }
+
+//     // Save item to the database
+//     const user = await RestApi.create({
+//         name,
+//         price,
+//         image: uploadImage.secure_url,
+//     });
+
+//     return res.json({ message: "Item created successfully", user }).status(200);
+// };
+
 const UploadItem = async (req, res) => {
     const { name, price } = req.body;
     const file = req.file;
-    console.log("file :" , file)
 
     if (!file) {
         return res.status(400).json({ error: "Image is required" });
@@ -21,23 +51,21 @@ const UploadItem = async (req, res) => {
         return res.status(400).json({ message: "Name and price are required" });
     }
 
-    // Upload image to Cloudinary
-    const uploadImage = await uploadOnCloudinary(file.path);
-    console.log("uploadImage : ", uploadImage)
+    const uploadImage = await uploadOnCloudinary(file.buffer); 
 
     if (!uploadImage) {
         return res.status(500).json({ error: "Upload failed" });
     }
 
-    // Save item to the database
     const user = await RestApi.create({
         name,
         price,
         image: uploadImage.secure_url,
     });
 
-    return res.json({ message: "Item created successfully", user }).status(200);
+    return res.status(200).json({ message: "Item created successfully", user });
 };
+
 
 const ShowItem = async(req,res)=>{
     const id  = req.params.id
