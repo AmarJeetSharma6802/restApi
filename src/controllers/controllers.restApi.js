@@ -43,6 +43,9 @@ const UploadItem = async (req, res) => {
     const { name, price } = req.body;
     const file = req.file;
 
+    console.log("Body:", req.body);
+    console.log("File:", file);
+
     if (!file) {
         return res.status(400).json({ error: "Image is required" });
     }
@@ -51,7 +54,13 @@ const UploadItem = async (req, res) => {
         return res.status(400).json({ message: "Name and price are required" });
     }
 
-    const uploadImage = await uploadOnCloudinary(file.buffer); 
+    let uploadImage;
+    try {
+        uploadImage = await uploadOnCloudinary(file.buffer);
+    } catch (err) {
+        console.error("Cloudinary upload error:", err);
+        return res.status(500).json({ error: "Upload failed at Cloudinary" });
+    }
 
     if (!uploadImage) {
         return res.status(500).json({ error: "Upload failed" });
