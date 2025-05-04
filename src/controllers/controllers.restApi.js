@@ -94,32 +94,6 @@ const ShowItem = async(req,res)=>{
     }
 }
 
-// const UpdateImage = async (req, res) => {
-//     const { id } = req.params;
-//     const file = req.file;
-//     const{name,price} = req.body
-
-//     if (!file) return res.status(400).json({ error: "Image is required" });
-
-//     const uploadedImage = await uploadOnCloudinary(file.path);
-//     if (!uploadedImage) return res.status(500).json({ error: "Image upload failed" });
-
-//     const updatedItem = await RestApi.findByIdAndUpdate(
-//         id,
-//         { 
-//             image: uploadedImage.secure_url,
-//             name,
-//             price
-//          },
-//         { new: true }
-//     );
-
-//     if (!updatedItem) {
-//         return res.status(404).json({ message: "Item not found" });
-//     }
-
-//     res.status(200).json({ message: "Image updated successfully", updatedItem });
-// };
 const UpdateImage = async (req, res) => {
     const { id } = req.params;
     const file = req.file;
@@ -127,7 +101,9 @@ const UpdateImage = async (req, res) => {
 
     if (!file) return res.status(400).json({ error: "Image is required" });
 
+    // const uploadedImage = await uploadOnCloudinary(file.path);
     const uploadedImage = await uploadOnCloudinary(file.buffer);
+
     if (!uploadedImage) return res.status(500).json({ error: "Image upload failed" });
 
     const updatedItem = await RestApi.findByIdAndUpdate(
@@ -146,6 +122,7 @@ const UpdateImage = async (req, res) => {
 
     res.status(200).json({ message: "Image updated successfully", updatedItem });
 };
+
 
 const DeleteItem = async(req,res)=>{
 
