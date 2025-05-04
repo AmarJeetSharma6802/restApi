@@ -49,7 +49,7 @@ const uploadOnCloudinary = async (buffer) => {
                     resolve(result);
                 }
             );
-            stream.end(buffer); // memory से फाइल भेजें
+            stream.end(buffer); 
         });
     } catch (error) {
         console.error("Upload failed:", error);
