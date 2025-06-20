@@ -1,6 +1,6 @@
 import multer from "multer"
 
-
+// in public folder
 // const storage = multer.diskStorage({
 //     destination :function(req,fil,cb){
 //         // cb(null ,"./public/temp")
@@ -15,9 +15,17 @@ import multer from "multer"
 
 // export const uploadImage = upload.single("image");
 
+// after depoly use  
 
 const storage = multer.memoryStorage(); 
 
 const upload = multer({ storage });
 
-export const uploadImage = upload.single("image"); 
+// export const uploadImage = upload.single("image"); 
+
+// export const uploadVideoFile = upload.single("video");
+
+export const uploadFields = upload.fields([
+  { name: "image", maxCount: 1 },
+  { name: "video", maxCount: 1 }
+]);

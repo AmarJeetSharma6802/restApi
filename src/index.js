@@ -18,6 +18,9 @@ connectDB()
 import restRouter from "./Router/Router.RestApi.js"
 app.use("/itemApi" , restRouter)
 
+import videoRouter from "./Router/Router.Video.js"
+app.use("/videoApi" , videoRouter)
+
 import ShortenLinkRouter from './Router/Route.ShortenLink.js'
 app.use("/LinkCovert" , ShortenLinkRouter)
 

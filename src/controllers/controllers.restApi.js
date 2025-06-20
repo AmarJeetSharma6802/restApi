@@ -43,8 +43,8 @@ const UploadItem = async (req, res) => {
     const { name, price } = req.body;
     const file = req.file;
 
-    console.log("Body:", req.body);
-    console.log("File:", file);
+    // console.log("Body:", req.body);
+    // console.log("File:", file);
 
     if (!file) {
         return res.status(400).json({ error: "Image is required" });
