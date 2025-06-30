@@ -21,7 +21,7 @@ const storage = multer.memoryStorage();
 
 const upload = multer({ storage });
 
-// export const uploadImage = upload.single("image"); 
+export const uploadImage = upload.single("image"); 
 
 // export const uploadVideoFile = upload.single("video");
 

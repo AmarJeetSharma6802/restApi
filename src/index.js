@@ -24,6 +24,9 @@ app.use("/videoApi" , videoRouter)
 import ShortenLinkRouter from './Router/Route.ShortenLink.js'
 app.use("/LinkCovert" , ShortenLinkRouter)
 
+import userRouter from "./Router/user.router.js"
+app.use("/user",userRouter)
+
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
 });
