@@ -29,3 +29,5 @@ export const uploadFields = upload.fields([
   { name: "image", maxCount: 1 },
   { name: "video", maxCount: 1 }
 ]);
+
+// multer middleware file ko automatically memory buffer mein convert kar deta hai.
