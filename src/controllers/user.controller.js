@@ -84,7 +84,7 @@ const loginUser = async (req, res) => {
 
   try {
     const ip =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers("x-forwarded-for")?.split(",")[0]?.trim() ||
       req.headers("x-real-ip") ||
       req.headers("remote-addr") ||
       req.socket?.remoteAddress ||
