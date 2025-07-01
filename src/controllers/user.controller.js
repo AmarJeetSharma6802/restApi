@@ -21,7 +21,7 @@ const uploadData = async (req, res) => {
 
     //    console.log("req.body =",req.body)
 
-    if (!name || !email || !password || !ChangePassword) {
+    if (!name || !email || !password || !comparePassword) {
       return res.status(400).json({ message: "All fields required" });
     }
     if (!file) {
@@ -44,7 +44,7 @@ const uploadData = async (req, res) => {
     if (password !== ChangePassword) {
       return res
         .status(404)
-        .json({ message: "password and ChangePassword does not match" });
+        .json({ message: "password and comparePassword do not match" });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -54,7 +54,6 @@ const uploadData = async (req, res) => {
       name,
       email,
       password: hashPassword,
-      ChangePassword: ChangePassword,
       image: uploadedImage.url,
     });
 
