@@ -79,6 +79,9 @@ const uploadData = async (req, res) => {
   }
 };
 
+
+const failedLoginAttempts = new Map();
+
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
@@ -90,7 +93,7 @@ const loginUser = async (req, res) => {
       req.socket?.remoteAddress ||
       'unknown';
 
-    const loginAttempt = failedLoginAttemtps.get(ip);
+    const loginAttempt = failedLoginAttempts.get(ip);
 
     if (loginAttempt?.blockedUntil && Date.now() < loginAttempt.blockedUntil) {
       const remainingTime = Math.ceil(
@@ -101,56 +104,67 @@ const loginUser = async (req, res) => {
       });
     }
 
-     if (!email || !password) {
-    return res.status(400).json({
-      message: "All fields are required",
-    });
+    if (!email || !password) {
+      return res.status(400).json({
+        message: 'All fields are required',
+      });
+    }
+
+    const user = await UserData.findOne({ email });
+
+    if (!user) {
+      return handleFailedAttempt(ip, res);
+    }
+
+    const matchPassword = await bcrypt.compare(password, user.password);
+
+    if (!matchPassword) {
+      return handleFailedAttempt(ip, res);
+    }
+
+    failedLoginAttempts.delete(ip);
+
+    const accessToken = jwt.sign(
+      { user_id: user._id, email: user.email },
+      process.env.ACCESSTOKEN,
+      { expiresIn: '1d' }
+    );
+
+    const refreshToken = jwt.sign(
+      { user_id: user._id, email: user.email },
+      process.env.REFRESHTOKEN,
+      { expiresIn: '5d' }
+    );
+
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    const isProduction = process.env.NODE_ENV === 'production';
+    res
+      .cookie('accessToken', accessToken, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: 'strict',
+        path: '/',
+      })
+      .cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: 'strict',
+        path: '/',
+      })
+      .status(200)
+      .json({
+        message: 'Login successful',
+        user: { name: user.name, email: user.email },
+        accessToken,
+        refreshToken,
+      });
+  } catch (error) {
+    console.error('Login error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
-  const user = await UserData.findOne({email})
-
-  
-  if (!user) {
-    return handleFailedAttempt(ip);
-  }
-
-  const matchPassword = await bcrypt.compare(password,user.password)
-
- if (!matchPassword) {
-    return handleFailedAttempt(ip, res);
-  }
-
-  failedLoginAttempts.delete(ip);
-
-  const accessToken =  jwt.sign({user_id:user._id,email:user.email}, process.env.ACCESSTOKEN,{expiresIn:"1d"})
-
-  const refreshToken = jwt.sign(
-    { user_id: user._id, email: user.email },
-    process.env.REFRESHTOKEN,
-    { expiresIn: "5d" }
-  )
-
-  user.refreshToken = refreshToken;
-  await user.save();
-
-  res.cookie("accessToken", accessToken,{
-    httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      path: "/",
-  })
-  .cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      path: "/",
-    })
-    .status(200)
-    .json({
-      message: "Login successful",
-      user: { name: user.name, email: user.email },
-      accessToken,
-      refreshToken,
-    });
+};
 
 function handleFailedAttempt(ip, res) {
   const currentTime = Date.now();
@@ -160,19 +174,14 @@ function handleFailedAttempt(ip, res) {
   attempt.lastAttempt = currentTime;
 
   if (attempt.attempts >= 5) {
-    attempt.blockedUntil = currentTime + 15 * 60 * 1000; // 15 minutes block
+    attempt.blockedUntil = currentTime + 15 * 60 * 1000; 
   }
 
   failedLoginAttempts.set(ip, attempt);
 
   return res.status(401).json({
-    message: "Invalid credentials or user not found.",
+    message: 'Invalid credentials or user not found.',
   });
 }
-
-  } catch (error) {
-    console.log(error)
-  }
-};
 
 export { uploadData, getData ,loginUser};
