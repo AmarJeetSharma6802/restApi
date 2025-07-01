@@ -28,13 +28,13 @@ const uploadData = async (req, res) => {
       return res.status(400).json({ message: "image required" });
     }
 
-    const findUser = await UserData.findOne({email:email});
+    const findUser = await UserData.findOne({ email: email });
 
     if (findUser) {
-  return res.status(401).json({
-    message: "User already exists",
-  });
-}
+      return res.status(401).json({
+        message: "User already exists",
+      });
+    }
 
     const uploadedImage = await imagekit.upload({
       file: file.buffer,
@@ -47,24 +47,29 @@ const uploadData = async (req, res) => {
         .json({ message: "password and ChangePassword does not match" });
     }
 
-    const salt = await bcrypt.genSalt(10)
-    const hashPassword = await bcrypt.hash(password,salt)
-    
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(password, salt);
+
     const createData = await UserData.create({
       name,
       email,
-      password :hashPassword,
+      password: hashPassword,
       ChangePassword: ChangePassword,
       image: uploadedImage.url,
     });
 
-    const accessToken = jwt.sign({_id:createData._id,email:createData.email},process.env.ACCESSTOKEN,{expiresIn:"1d"})
+    const accessToken = jwt.sign(
+      { _id: createData._id, email: createData.email },
+      process.env.ACCESSTOKEN,
+      { expiresIn: "1d" }
+    );
 
-    const user = await UserData.findById(createData._id).select("-password")
+    const user = await UserData.findById(createData._id).select("-password");
 
     return res.status(201).json({
       message: "User created successfully",
-      user, accessToken
+      user,
+      accessToken,
     });
   } catch (error) {
     return res.status(500).json({
@@ -74,11 +79,100 @@ const uploadData = async (req, res) => {
   }
 };
 
-const updateUserData = async (req, res) => {
-  const id = req.params.id;
+const loginUser = async (req, res) => {
+  const { email, password } = req.body;
 
   try {
-  } catch (error) {}
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers("x-real-ip") ||
+      req.headers("remote-addr") ||
+      req.socket?.remoteAddress ||
+      "unknown";
+
+    const loginAttempt = failedLoginAttemtps.get(ip);
+
+    if (loginAttempt?.blockedUntil && Date.now() < loginAttempt.blockedUntil) {
+      const remainingTime = Math.ceil(
+        (loginAttempt.blockedUntil - Date.now()) / (1000 * 60)
+      );
+      return res.status(429).json({
+        message: `Too many failed attempts. Try again in ${remainingTime} min.`,
+      });
+    }
+
+     if (!email || !password) {
+    return res.status(400).json({
+      message: "All fields are required",
+    });
+  }
+  const user = await UserData.findOne({email})
+
+  
+  if (!user) {
+    return handleFailedAttempt(ip);
+  }
+
+  const matchPassword = await bcrypt.compare(password,user.password)
+
+ if (!matchPassword) {
+    return handleFailedAttempt(ip, res);
+  }
+
+  failedLoginAttempts.delete(ip);
+
+  const accessToken =  jwt.sign({user_id:user._id,email:user.email}, process.env.ACCESSTOKEN,{expiresIn:"1d"})
+
+  const refreshToken = jwt.sign(
+    { user_id: user._id, email: user.email },
+    process.env.REFRESHTOKEN,
+    { expiresIn: "5d" }
+  )
+
+  user.refreshToken = refreshToken;
+  await user.save();
+
+  res.cookie("accessToken", accessToken,{
+    httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      path: "/",
+  })
+  .cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      path: "/",
+    })
+    .status(200)
+    .json({
+      message: "Login successful",
+      user: { name: user.name, email: user.email },
+      accessToken,
+      refreshToken,
+    });
+
+function handleFailedAttempt(ip, res) {
+  const currentTime = Date.now();
+  const attempt = failedLoginAttempts.get(ip) || { attempts: 0, lastAttempt: null };
+
+  attempt.attempts += 1;
+  attempt.lastAttempt = currentTime;
+
+  if (attempt.attempts >= 5) {
+    attempt.blockedUntil = currentTime + 15 * 60 * 1000; // 15 minutes block
+  }
+
+  failedLoginAttempts.set(ip, attempt);
+
+  return res.status(401).json({
+    message: "Invalid credentials or user not found.",
+  });
+}
+
+  } catch (error) {
+    console.log(error)
+  }
 };
 
-export { uploadData, getData };
+export { uploadData, getData ,loginUser};
