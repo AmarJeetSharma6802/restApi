@@ -16,7 +16,7 @@ const getData = async (req, res) => {
 
 const uploadData = async (req, res) => {
   try {
-    const { name, email, password, ChangePassword } = req.body;
+    const { name, email, password, comparePassword } = req.body;
     const file = req.file;
 
     //    console.log("req.body =",req.body)
@@ -41,7 +41,7 @@ const uploadData = async (req, res) => {
       fileName: file.originalname,
     });
 
-    if (password !== ChangePassword) {
+    if (password !== comparePassword) {
       return res
         .status(404)
         .json({ message: "password and comparePassword do not match" });
@@ -200,5 +200,6 @@ const deleteAccount = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 export { uploadData, getData ,loginUser,deleteAccount};
