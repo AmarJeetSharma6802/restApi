@@ -7,8 +7,8 @@ import jwt from "jsonwebtoken";
 const getData = async (req, res) => {
   const foundUser = await UserData.find();
 
-  if (!foundUser) {
-    return res.status(404).json({ message: "user not found" });
+  if (!foundUser.length) { 
+    return res.status(404).json({ message: "No users found" });
   }
 
   return res.status(201).json({ message: "user found succefully", foundUser });
@@ -183,4 +183,22 @@ function handleFailedAttempt(ip, res) {
   });
 }
 
-export { uploadData, getData ,loginUser};
+const deleteAccount = async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const foundUser = await UserData.findByIdAndDelete(id);
+
+    if (!foundUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({ message: "Account deleted successfully",foundUser });
+    
+  } catch (error) {
+    console.error("Delete account error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export { uploadData, getData ,loginUser,deleteAccount};
