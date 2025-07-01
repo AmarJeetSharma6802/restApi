@@ -7,7 +7,7 @@ import jwt from "jsonwebtoken";
 const getData = async (req, res) => {
   const foundUser = await UserData.find();
 
-  if (!foundUser.length) { 
+  if (!foundUser.length) {
     return res.status(404).json({ message: "No users found" });
   }
 
@@ -78,7 +78,6 @@ const uploadData = async (req, res) => {
   }
 };
 
-
 const failedLoginAttempts = new Map();
 
 const loginUser = async (req, res) => {
@@ -86,11 +85,11 @@ const loginUser = async (req, res) => {
 
   try {
     const ip =
-      req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
-      req.headers['x-real-ip'] ||
-      req.headers['remote-addr'] ||
+      req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+      req.headers["x-real-ip"] ||
+      req.headers["remote-addr"] ||
       req.socket?.remoteAddress ||
-      'unknown';
+      "unknown";
 
     const loginAttempt = failedLoginAttempts.get(ip);
 
@@ -105,7 +104,7 @@ const loginUser = async (req, res) => {
 
     if (!email || !password) {
       return res.status(400).json({
-        message: 'All fields are required',
+        message: "All fields are required",
       });
     }
 
@@ -126,60 +125,63 @@ const loginUser = async (req, res) => {
     const accessToken = jwt.sign(
       { user_id: user._id, email: user.email },
       process.env.ACCESSTOKEN,
-      { expiresIn: '1d' }
+      { expiresIn: "1d" }
     );
 
     const refreshToken = jwt.sign(
       { user_id: user._id, email: user.email },
       process.env.REFRESHTOKEN,
-      { expiresIn: '5d' }
+      { expiresIn: "5d" }
     );
 
     user.refreshToken = refreshToken;
     await user.save();
 
-    const isProduction = process.env.NODE_ENV === 'production';
+    const isProduction = process.env.NODE_ENV === "production";
     res
-      .cookie('accessToken', accessToken, {
+      .cookie("accessToken", accessToken, {
         httpOnly: true,
         secure: isProduction,
-        sameSite: 'strict',
-        path: '/',
+        sameSite: "strict",
+        path: "/",
       })
-      .cookie('refreshToken', refreshToken, {
+      .cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: isProduction,
-        sameSite: 'strict',
-        path: '/',
+        sameSite: "strict",
+        path: "/",
       })
       .status(200)
       .json({
-        message: 'Login successful',
+        message: "Login successful",
         user: { name: user.name, email: user.email },
         accessToken,
         refreshToken,
       });
   } catch (error) {
-    console.error('Login error:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    console.error("Login error:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
 function handleFailedAttempt(ip, res) {
   const currentTime = Date.now();
-  const attempt = failedLoginAttempts.get(ip) || { attempts: 0, lastAttempt: null };
+  const attempt = failedLoginAttempts.get(ip) || {
+    attempts: 0,
+    lastAttempt: null,
+  };
 
   attempt.attempts += 1;
   attempt.lastAttempt = currentTime;
 
   if (attempt.attempts >= 5) {
-    attempt.blockedUntil = currentTime + 15 * 60 * 1000; 
+    attempt.blockedUntil = currentTime + 15 * 60 * 1000;
   }
 
   failedLoginAttempts.set(ip, attempt);
 
   return res.status(401).json({
-    message: 'Invalid credentials or user not found.',
+    message: "Invalid credentials or user not found.",
   });
 }
 
@@ -193,8 +195,9 @@ const deleteAccount = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    return res.status(200).json({ message: "Account deleted successfully",foundUser });
-    
+    return res
+      .status(200)
+      .json({ message: "Account deleted successfully", foundUser });
   } catch (error) {
     console.error("Delete account error:", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -202,14 +205,84 @@ const deleteAccount = async (req, res) => {
 };
 
 const UserloggedOut = async (req, res) => {
- await UserData.findByIdAndUpdate(req.user._id, {
+  await UserData.findByIdAndUpdate(req.user._id, {
     refreshToken: null,
   });
 
-    return res.status(201)
-    .clearCookie("accessToken",{httpOnly:true,secure:true})
-    .clearCookie("refreshToken",{httpOnly:true,secure:true} )
+  return res
+    .status(201)
+    .clearCookie("accessToken", { httpOnly: true, secure: true })
+    .clearCookie("refreshToken", { httpOnly: true, secure: true })
     .json({ message: "User logged out" });
-}
+};
 
-export { uploadData, getData ,loginUser,deleteAccount,UserloggedOut};
+const updateAccount = async (req, res) => {
+  const { name } = req.body;
+  const file = req.file;
+
+  if (!name) {
+    return res.status(400).json({ message: "Name is required" });
+  }
+  if (!file) {
+    return res.status(400).json({ message: "image is required" });
+  }
+
+  const uploadedImage = await imagekit.upload({
+    file: file.buffer,
+    fileName: file.originalname,
+  });
+
+  const user = await UserData.findByIdAndUpdate(
+    req.user?._id,
+    {
+      name,
+      image: uploadedImage.url,
+    },
+    { new: true, select: "-password -refreshToken -__v" }
+  );
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+  return res.status(200).json({
+    message: "Account updated successfully",
+    user: user,
+  });
+};
+
+const userChangePassword = async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+
+  if (!oldPassword || !newPassword) {
+    return res
+      .status(400)
+      .json({ message: "Both old and new passwords are required." });
+  }
+
+  const user = await UserData.findById(req.user?._id);
+  if (!user) {
+    return res.status(401).json({ message: "User not found" });
+  } 
+
+  const passwordMatch = await bcrypt.compare(oldPassword, user.password);
+
+  if (!passwordMatch) {
+    return res.status(400).json({ message: "Old password does not match" });
+  }
+  const salt = await bcrypt.genSalt(10);
+  const hashPassword = await bcrypt.hash(newPassword, salt);
+
+  user.password = hashPassword;
+  await user.save({ validateBeforeSave: false });
+
+  return res.status(200).json({ message: "Password changed successfully" });
+};
+
+export {
+  uploadData,
+  getData,
+  loginUser,
+  deleteAccount,
+  UserloggedOut,
+  updateAccount,
+  userChangePassword
+};
