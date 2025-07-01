@@ -84,11 +84,11 @@ const loginUser = async (req, res) => {
 
   try {
     const ip =
-  req.headers("x-forwarded-for")?.split(",")[0]?.trim() ||
-  req.headers("x-real-ip") ||
-  req.headers("remote-addr") ||
-  req.socket?.remoteAddress ||
-  "unknown";
+      req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+      req.headers['x-real-ip'] ||
+      req.headers['remote-addr'] ||
+      req.socket?.remoteAddress ||
+      'unknown';
 
     const loginAttempt = failedLoginAttemtps.get(ip);
 
