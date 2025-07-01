@@ -201,5 +201,15 @@ const deleteAccount = async (req, res) => {
   }
 };
 
+const UserloggedOut = async (req, res) => {
+ await UserData.findByIdAndUpdate(req.user._id, {
+    refreshToken: null,
+  });
 
-export { uploadData, getData ,loginUser,deleteAccount};
+    return res.status(201)
+    .clearCookie("accessToken",{httpOnly:true,secure:true})
+    .clearCookie("refreshToken",{httpOnly:true,secure:true} )
+    .json({ message: "User logged out" });
+}
+
+export { uploadData, getData ,loginUser,deleteAccount,UserloggedOut};
