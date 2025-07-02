@@ -277,6 +277,19 @@ const userChangePassword = async (req, res) => {
   return res.status(200).json({ message: "Password changed successfully" });
 };
 
+const findUserById = async(req,res)=>{
+
+  const id = req.params.id
+
+  const findById = await UserData.findById(id)
+
+  if(!findById){
+    return res.status(404).json({message:"user id not found"})
+  }
+
+  res.status(201).json({message:"user find by id succesully",findById})
+}
+
 export {
   uploadData,
   getData,
@@ -284,5 +297,6 @@ export {
   deleteAccount,
   UserloggedOut,
   updateAccount,
-  userChangePassword
+  userChangePassword,
+  findUserById
 };
