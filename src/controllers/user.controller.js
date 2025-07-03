@@ -326,24 +326,7 @@ const refreshToken = async (req, res) => {
     });
 };
 
-const forgetPassword = async(req,res)=>{
-const {email} =req.body
-try {
-  const user = await UserData.findOne({email})
-   if (!user) {
-      return res.status(404).json({ message: "User with this email does not exist" });
-    }
 
-    const token = jwt.sign(
-      { user_id: user._id },
-      process.env.ACCESSTOKEN,
-      { expiresIn: "15m" }
-    );
-    
-} catch (error) {
-  
-}
-}
 
 export {
   uploadData,
