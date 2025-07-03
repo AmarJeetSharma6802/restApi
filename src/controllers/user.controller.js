@@ -261,7 +261,7 @@ const userChangePassword = async (req, res) => {
   const user = await UserData.findById(req.user?._id);
   if (!user) {
     return res.status(401).json({ message: "User not found" });
-  } 
+  }
 
   const passwordMatch = await bcrypt.compare(oldPassword, user.password);
 
@@ -277,18 +277,54 @@ const userChangePassword = async (req, res) => {
   return res.status(200).json({ message: "Password changed successfully" });
 };
 
-const findUserById = async(req,res)=>{
+const findUserById = async (req, res) => {
+  const id = req.params.id;
 
-  const id = req.params.id
+  const findById = await UserData.findById(id);
 
-  const findById = await UserData.findById(id)
-
-  if(!findById){
-    return res.status(404).json({message:"user id not found"})
+  if (!findById) {
+    return res.status(404).json({ message: "user id not found" });
   }
 
-  res.status(201).json({message:"user find by id succesully",findById})
-}
+  res.status(201).json({ message: "user find by id succesully", findById });
+};
+
+const refreshToken = async (req, res) => {
+  const refreshToken =
+    req.cookies?.refreshToken ||
+    req.headers("authorization")?.replace("Bearer ", "");
+
+  if (!refreshToken) {
+    return res.status(401).json({ message: "No refresh token" });
+  }
+
+  const decoded = jwt.verify(refreshToken, process.env.REFRESHTOKEN);
+
+  const user = await UserData.findById(decoded.user_id);
+
+  if (!user || user.refreshToken !== refreshToken) {
+    return res.json({ message: "Invalid refresh token" }).status(401);
+  }
+
+  const NewaccessToken = jwt.sign(
+    { user_id: user._id, email: user.email },
+    process.env.ACCESSTOKEN,
+    { expiresIn: "1d" }
+  );
+
+  res.cookie("accessToken", NewaccessToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    path: "/",
+  });
+
+  return res.status(200).json({
+      message: "New access token generated",
+      NewaccessToken,
+    });
+};
+
 
 export {
   uploadData,
@@ -298,5 +334,6 @@ export {
   UserloggedOut,
   updateAccount,
   userChangePassword,
-  findUserById
+  findUserById,
+  refreshToken,
 };
