@@ -41,7 +41,7 @@ const GetItem = async(req,res)=>{
 
 const UploadItem = async (req, res) => {
     const { name, price } = req.body;
-    const file = req.file;
+     const file = req.files?.image?.[0];
 
     // console.log("Body:", req.body);
     // console.log("File:", file);
