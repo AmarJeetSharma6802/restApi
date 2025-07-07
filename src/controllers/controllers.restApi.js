@@ -96,7 +96,8 @@ const ShowItem = async(req,res)=>{
 
 const UpdateImage = async (req, res) => {
     const { id } = req.params;
-    const file = req.file;
+        const file = req.files?.image?.[0];
+
     const{name,price} = req.body
 
     if (!file) return res.status(400).json({ error: "Image is required" });
