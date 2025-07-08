@@ -104,10 +104,34 @@ const videoAggregate = async (req, res) => {
         preserveNullAndEmptyArrays: true,
       },
     },
+    {
+       $project: {
+        videoTitle: 1,
+        video: 1,
+        uploadedAt: 1,
+        "user.name": 1,
+        "user.price": 1,
+      },
+    },
+     {
+      $sort: {
+        uploadedAt: -1,
+      },
+    },
   ];
+
+  const result = await Video.aggregatePaginate(
+    Video.aggregate(pipeline),
+    {page,limit}
+  )
+   if (!result) {
+    return res.status(404).json({ message: "No videos found" });
+  }
+  
+  return res.status(200).json(result);
 };
 
-export { VideoData, uploadVideo, getVideoById, updatedVideo, DeleteVideo };
+export { VideoData, uploadVideo, getVideoById, updatedVideo, DeleteVideo ,videoAggregate};
 
 // Tumhe manually .arrayBuffer() call karna padta hai.
 // Fir Buffer.from() se Node.js buffer banana padta hai.
