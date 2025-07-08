@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
 
 const videoSchema  = new mongoose.Schema({
     user:{
@@ -17,6 +18,7 @@ const videoSchema  = new mongoose.Schema({
     default: Date.now
   }
 })
+videoSchema.plugin(mongooseAggregatePaginate)
 
 const Video  = mongoose.model("Video", videoSchema)
 
