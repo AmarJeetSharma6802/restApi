@@ -94,7 +94,7 @@ const videoAggregate = async (req, res) => {
       $lookup: {
         from: "restapi",
         localField: "user",
-        foreignfield: "_id",
+        foreignField: "_id",
         as: "user",
       },
     },
