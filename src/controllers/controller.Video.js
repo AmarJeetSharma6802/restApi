@@ -114,7 +114,7 @@ const videoAggregate = async (req, res) => {
       },
     },
      {
-      $sort: {
+      $sort: { //Documents ko descending order mein sort karta hai:
         uploadedAt: -1,
       },
     },
