@@ -87,7 +87,7 @@ const DeleteVideo = async (req, res) => {
 
 const videoAggregate = async (req, res) => {
   const page = parseInt(req.query) || 1;
-  const limit = parseInt(req.qeruy.limit) || 5;
+  const limit = parseInt(req.query.limit) || 5;
 
   const pipeline = [
     {
