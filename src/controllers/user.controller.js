@@ -1,4 +1,3 @@
-import { json } from "express";
 import UserData from "../model/user.model.js";
 import { imagekit } from "../utils/imagekit.js";
 import bcrypt from "bcryptjs";
