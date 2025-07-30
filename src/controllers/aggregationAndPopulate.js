@@ -1,4 +1,4 @@
-import arrPop from "../model/chek.js"
+import arrPop from "../model/aggregationPopulate.model.js"
 import { uploadOnCloudinary } from "../utils/cloudinary.js"
 import { imagekit } from "../utils/imagekit.js"
 
@@ -64,9 +64,19 @@ const deletePopVideo = async(req,res)=>{
     return res.status(201).json({message:"User is delete succesfully", DeletedUser })
 }
 
+const GetDataById = async(req,res)=>{
 
+    const {id} = req.params
+
+    const FindUserById = await arrPop.findById(id)
+    if(!FindUserById){
+        return res.status(404).json({message:"user not found by id"})
+    }
+     return res.status(201).json({message:"user found succefully by id",FindUserById})
+}
 export  {
     getData,
     popUploadedVideo,
-    deletePopVideo
+    deletePopVideo,
+    GetDataById
 }

@@ -8,11 +8,9 @@ const arrPopSchema =  mongoose.Schema({
     },
     videoTitle:{
         type:String,
-
     },
     video:{
          type:String,
-
     }
 
     
