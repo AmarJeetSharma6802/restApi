@@ -47,6 +47,12 @@ const uploadData = async (req, res) => {
         .json({ message: "password and comparePassword do not match" });
     }
 
+    if (password.length < 6) {
+      return res.status(400).json({
+        message: "Password must be at least 6 characters long",
+      });
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hashPassword = await bcrypt.hash(password, salt);
 
@@ -320,12 +326,10 @@ const refreshToken = async (req, res) => {
   });
 
   return res.status(200).json({
-      message: "New access token generated",
-      NewaccessToken,
-    });
+    message: "New access token generated",
+    NewaccessToken,
+  });
 };
-
-
 
 export {
   uploadData,
