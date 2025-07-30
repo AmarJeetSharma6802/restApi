@@ -4,7 +4,7 @@ import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
 const arrPopSchema =  mongoose.Schema({
     user:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:"Restapi"
+        ref:"RestApi"
     },
     videoTitle:{
         type:String,

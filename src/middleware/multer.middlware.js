@@ -38,4 +38,4 @@ export const uploadFields = upload.fields([
 const storageVideo = multer.memoryStorage()
 const uploadVideo = multer({storage:storageVideo})
 
-export const uploadedVideo = uploadVideo.single("video")
+export const uploadedVideo = uploadVideo.single("video");
