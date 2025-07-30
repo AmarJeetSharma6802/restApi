@@ -74,9 +74,53 @@ const GetDataById = async(req,res)=>{
     }
      return res.status(201).json({message:"user found succefully by id",FindUserById})
 }
+
+const updateVdieo = async(req,res)=>{
+
+try {
+  const {id} = req.params
+
+  const {videoTitle} =req.body
+  const file  = req.file
+
+   if (!videoTitle || !videoTitle.trim()) {
+      return res.status(400).json({ success: false, message: "Video title is required" });
+    }
+
+  if(!file){
+    return res.status(404).json({message:"file is missing"})
+  }
+
+
+  const uploadVideo = await uploadOnCloudinary(file.buffer ,"video")
+
+    if (!uploadVideo?.secure_url) {
+      return res.status(500).json({ success: false, message: "Failed to upload video to Cloudinary" });
+    }
+  
+
+  const UpdatedVideo = await arrPop.findByIdAndUpdate(
+    id,
+    {
+      videoTitle,
+      video:uploadVideo.secure_url
+    },
+    {
+      new:true
+    }
+  )
+
+return res.status(201).json({message:"video updated succefully", UpdatedVideo})
+  
+} catch (error) {
+  console.error("Error updating video:", error.message);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+}
+}
 export  {
     getData,
     popUploadedVideo,
     deletePopVideo,
-    GetDataById
+    GetDataById,
+    updateVdieo
 }
