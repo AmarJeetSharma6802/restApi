@@ -95,7 +95,7 @@ const videoAggregate = async (req, res) => {
         from: "restapi",
         localField: "user",
         foreignField: "_id",
-        as: "user",
+        as: "user", // Result me us joined document ko kis naam se rakhna chahte ho
       },
     },
     {
