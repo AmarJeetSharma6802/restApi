@@ -117,6 +117,38 @@ return res.status(201).json({message:"video updated succefully", UpdatedVideo})
     return res.status(500).json({ success: false, message: "Internal Server Error" });
 }
 }
+
+const VideoLimit = async(req,res)=>{
+const page = parseInt(req.query) || 1 ;
+const limit  = parent(req.query.limit) || 5;
+
+const pipeline = [
+  {
+    $lookup:{
+      from : "restapi",
+      localField :"user",
+      foreignField: "_id",// RestApi ka _id
+      as:"userDetails"
+    },
+  },
+  {
+    $unwind:{
+      path:"userDetails",
+      preserveNullAndEmptyArrays: true,
+    }
+  },
+  {
+    $project:{
+      videoTitle:1,
+      video:1,
+      uploadedAt:1,
+      "userDetails.name":1, //restapi model ke name ko le rha hain refrence se
+      "userDetails.email":1,
+    }
+  },
+
+]
+}
 export  {
     getData,
     popUploadedVideo,
@@ -124,3 +156,14 @@ export  {
     GetDataById,
     updateVdieo
 }
+
+
+// $lookup aggregation operator hai jo foreign collection se join karta hai.
+
+// from: "restapis": ye RestApi model ka MongoDB collection name hai (usually lowercase plural).
+
+// localField: "user": current document ka user _id
+
+// foreignField: "_id": jise RestApi ke _id se match karega.
+
+// as: "userDetails": join ka result is array mein aayega.
