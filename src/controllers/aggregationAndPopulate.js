@@ -119,7 +119,7 @@ return res.status(201).json({message:"video updated succefully", UpdatedVideo})
 }
 
 const VideoLimit = async(req,res)=>{
-const page = parseInt(req.query) || 1 ;
+const page = parseInt(req.query.page) || 1 ;
 const limit  = parseInt(req.query.limit) || 5;
 
 const pipeline = [
@@ -133,7 +133,7 @@ const pipeline = [
   },
   {
     $unwind:{
-      path:"userDetails",
+      path:"$userDetails",
       preserveNullAndEmptyArrays: true,
     }
   },
