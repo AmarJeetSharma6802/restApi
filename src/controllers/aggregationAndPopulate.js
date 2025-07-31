@@ -146,6 +146,11 @@ const pipeline = [
       "userDetails.email":1,
     }
   },
+  {
+$sort:{
+  uploadedAt:-1,
+}
+  }
 
 ]
 }
