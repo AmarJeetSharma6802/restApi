@@ -120,7 +120,7 @@ return res.status(201).json({message:"video updated succefully", UpdatedVideo})
 
 const VideoLimit = async(req,res)=>{
 const page = parseInt(req.query) || 1 ;
-const limit  = parent(req.query.limit) || 5;
+const limit  = parseInt(req.query.limit) || 5;
 
 const pipeline = [
   {
@@ -153,13 +153,24 @@ $sort:{
   }
 
 ]
+
+const result = await arrPop.aggregatePaginate(
+  arrPop.aggregate(pipeline),
+  {page ,limit}
+)
+ if (!result) {
+    return res.status(404).json({ message: "No videos found" });
+  }
+   return res.status(200).json(result);
 }
 export  {
     getData,
     popUploadedVideo,
     deletePopVideo,
     GetDataById,
-    updateVdieo
+    updateVdieo,
+    VideoLimit 
+
 }
 
 
