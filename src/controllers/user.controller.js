@@ -336,16 +336,17 @@ const refreshToken = async (req, res) => {
 
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
+
   if (!email) return res.status(400).json({ message: "Email is required" });
 
   const user = await UserData.findOne({ email });
   if (!user) return res.status(404).json({ message: "User not found" });
 
   const resetToken = uuidv4();
-  console.log("Generated Reset Token:", resetToken);
+  // console.log("Generated Reset Token:", resetToken);
 
   user.resetPasswordToken = resetToken;
-  user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 minutes
+  user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; 
   await user.save();
 
   const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
@@ -374,20 +375,22 @@ const resetPassword = async (req, res) => {
      const token = req.body.token?.trim();  
       const newPassword = req.body.newPassword;
 
-  console.log("Received Token:", token);
+  // console.log("Received Token:", token);
 
   const user = await UserData.findOne({
     resetPasswordToken: token,
-     resetPasswordExpires: { $gt: Date.now() },
+    resetPasswordExpires: { $gt: Date.now() },
   });
 
-  console.log("User from DB:", user);
+  // console.log("User from DB:", user);
 
   if (!user) return res.status(400).json({ message: "Invalid or expired token" });
 
   const salt = await bcrypt.genSalt(10);
-  user.password = await bcrypt.hash(newPassword, salt);
+  const hashPassword = await bcrypt.hash(newPassword, salt);
+  // user.password = await bcrypt.hash(newPassword, salt);
 
+user.password = hashPassword;
 
 user.resetPasswordToken = undefined;
 user.resetPasswordExpires = undefined;
