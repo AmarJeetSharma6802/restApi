@@ -3,6 +3,9 @@ import { imagekit } from "../utils/imagekit.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import transporter from "../utils/nodemailer.js";
+import crypto from "crypto";
+import { v4 as uuidv4 } from "uuid";
+
 
 const getData = async (req, res) => {
   const foundUser = await UserData.find();
@@ -332,53 +335,60 @@ const refreshToken = async (req, res) => {
 };
 
 const forgotPassword = async (req, res) => {
-  
   const { email } = req.body;
   if (!email) return res.status(400).json({ message: "Email is required" });
 
   const user = await UserData.findOne({ email });
   if (!user) return res.status(404).json({ message: "User not found" });
 
-  const resetToken = crypto.randomBytes(20).toString("hex");
+  const resetToken = uuidv4();
+  console.log("Generated Reset Token:", resetToken);
 
   user.resetPasswordToken = resetToken;
-  user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 min
+  user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 minutes
   await user.save();
 
-   const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+  const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
 
- const mailOptions = {
+  const mailOptions = {
     from: `"My App" <${process.env.EMAIL_USER}>`,
     to: user.email,
     subject: "Password Reset Request",
     html: `<p>You requested a password reset</p>
            <p>Click this link to reset: <a href="${resetUrl}">Reset Password</a></p>
            <p>Or use this code: <strong>${resetToken}</strong></p>`,
-  }
+  };
 
-   try {
+  try {
     await transporter.sendMail(mailOptions);
     res.status(200).json({ message: "Reset email sent successfully" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Email could not be sent" });
   }
-
-};
+}
 
 const resetPassword = async (req, res) => {
-  const { token, newPassword } = req.body;
+  // const { token, newPassword } = req.body;
+
+     const token = req.body.token?.trim();  
+      const newPassword = req.body.newPassword;
+
+  console.log("Received Token:", token);
 
   const user = await UserData.findOne({
     resetPasswordToken: token,
     resetPasswordExpire: { $gt: Date.now() },
   });
 
+  console.log("User from DB:", user);
+
   if (!user) return res.status(400).json({ message: "Invalid or expired token" });
 
   const salt = await bcrypt.genSalt(10);
   user.password = await bcrypt.hash(newPassword, salt);
-  user.resetPasswordToken = undefined;
+
+  user.resetPasswordToken = null;
   user.resetPasswordExpire = undefined;
 
   await user.save();
