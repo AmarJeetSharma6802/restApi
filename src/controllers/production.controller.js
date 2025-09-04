@@ -1,6 +1,6 @@
 import expres from "express";
 import realForm from "../model/production.model.js";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import transporter from "../utils/nodemailer.js";
@@ -149,7 +149,7 @@ const logout = async(req,res)=>{
     await realForm.findByIdAndUpdate(req.user._id, {
         refreshToken: null,
       });
-      
+
      try {
     res.clearCookie("accessToken");
     res.clearCookie("refreshToken")
