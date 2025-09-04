@@ -103,6 +103,16 @@ import transporter from "../utils/nodemailer.js";
 //   });
 // };
 
+
+const UserData = async(req,res)=>{
+  const foundUser = await realForm.find()
+
+    if(!foundUser){
+    return res.status(404).json({message:"user not found"})
+  }
+   return res.status(200).json({message:"user is found succefully"})
+
+}
 const auth = async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -242,4 +252,13 @@ const logout = async(req,res)=>{
   }
 }
 
-export { auth, verifyEmail,resetPassword,logout };
+const deleteUser = async(req,res)=>{
+  const{id} = req.params
+
+  const delelteUser = await realForm.findByIdAndDelete(id)
+  if(!delelteUser){
+    return res.status(404).json({message:"user not deleted"})
+  }
+   return res.status(200).json({message:"user is deleted"})
+}
+export { auth, verifyEmail,resetPassword,logout,deleteUser,UserData };
