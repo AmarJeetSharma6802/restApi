@@ -118,11 +118,41 @@ const verifyEmail = async (req, res) => {
     user.verificationTokenExpires = undefined;
     await user.save();
 
-      res.send("Email verified successfully. You can now login.");
+    res.send("Email verified successfully. You can now login.");
   } catch (error) {
     console.log(error);
     res.status(500).send("Server error");
   }
 };
 
-export { auth };
+const resetPassword = async (req, res) => {
+  const { token, id, newPassword } = req.body;
+
+  const user = await UserData.findById(id);
+
+  if (
+    user.resetPasswordToken !== token || user.resetPasswordExpires < Date.now()
+  ) {
+     return res.status(400).json({ message: "Token expired or invalid" });
+  }
+  const salt = await bcrypt.genSalt(10)
+  const hashPassword = await bcrypt.hash(newPassword,salt)
+
+   user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+      res.json({ message: "Password reset successfully" });
+};
+const logout = async(req,res)=>{
+     try {
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken")
+    res.json({ message: "Logout successful" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server error" });
+  }
+}
+
+export { auth, verifyEmail,resetPassword,logout };
