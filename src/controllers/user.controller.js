@@ -345,7 +345,7 @@ const forgotPassword = async (req, res) => {
   console.log("Generated Reset Token:", resetToken);
 
   user.resetPasswordToken = resetToken;
-  user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 minutes
+  user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 minutes
   await user.save();
 
   const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
@@ -378,7 +378,7 @@ const resetPassword = async (req, res) => {
 
   const user = await UserData.findOne({
     resetPasswordToken: token,
-    resetPasswordExpire: { $gt: Date.now() },
+     resetPasswordExpires: { $gt: Date.now() },
   });
 
   console.log("User from DB:", user);
@@ -388,8 +388,9 @@ const resetPassword = async (req, res) => {
   const salt = await bcrypt.genSalt(10);
   user.password = await bcrypt.hash(newPassword, salt);
 
-  user.resetPasswordToken = null;
-  user.resetPasswordExpire = undefined;
+
+user.resetPasswordToken = undefined;
+user.resetPasswordExpires = undefined;
 
   await user.save();
 
