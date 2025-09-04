@@ -4,6 +4,7 @@ import { RestApi } from "../model/RestApi.model.js";
 
 const VideoData = async (req, res) => {
   const findVdideo = await Video.find().populate("user", "name price");
+  
   if (!findVdideo) {
     return res.status(404).json({ message: "No videos found" });
   }

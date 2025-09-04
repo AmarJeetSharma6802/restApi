@@ -33,7 +33,7 @@ export const uploadFields = upload.fields([
 // multer middleware file ko automatically memory buffer mein convert kar deta hai.
 
 
-// chek 
+// aggregation
 
 const storageVideo = multer.memoryStorage()
 const uploadVideo = multer({storage:storageVideo})

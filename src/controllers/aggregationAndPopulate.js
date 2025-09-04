@@ -132,9 +132,9 @@ const pipeline = [
     },
   },
   {
-    $unwind:{
+    $unwind:{   // Ye array ko tod kar single object bana dega.
       path:"$userDetails",
-      preserveNullAndEmptyArrays: true,
+      preserveNullAndEmptyArrays: true,  //Agar array empty ho to preserveNullAndEmptyArrays: true ki wajah se field null rahega, hata nahi jaayega.
     }
   },
   {
@@ -143,12 +143,12 @@ const pipeline = [
       video:1,
       uploadedAt:1,
       "userDetails.name":1, //restapi model ke name ko le rha hain refrence se
-      "userDetails.email":1,
+      // "userDetails.email":1,
     }
   },
   {
 $sort:{
-  uploadedAt:-1,
+  uploadedAt:-1, //uploadedAt ka value descending (-1) me sort karega.
 }
   }
 
@@ -176,10 +176,21 @@ export  {
 
 // $lookup aggregation operator hai jo foreign collection se join karta hai.
 
-// from: "restapis": ye RestApi model ka MongoDB collection name hai (usually lowercase plural).
+// from: "restapis": ye RestApi model ka MongoDB collection name hai (usually lowercase plural). Mongoose by default model name ko lowercase + plural karke collection banata hai.
 
 // localField: "user": current document ka user _id
 
 // foreignField: "_id": jise RestApi ke _id se match karega.
 
-// as: "userDetails": join ka result is array mein aayega.
+// as: "userDetails": join ka result is array mein aayega. custom field name
+
+// as: "userDetails" → result ek array me store hota hai.
+
+// Kyunki theoretically ek user multiple documents se match ho sakta hai, to MongoDB array return karta hai.
+
+// Agar match 1 document ka bhi ho, tab bhi wo array me aayega:
+
+
+// "userDetails": [
+//   { "name": "John", "price": 200, "image": "abc.jpg" }
+// ]
