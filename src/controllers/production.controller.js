@@ -145,6 +145,11 @@ const resetPassword = async (req, res) => {
       res.json({ message: "Password reset successfully" });
 };
 const logout = async(req,res)=>{
+
+    await realForm.findByIdAndUpdate(req.user._id, {
+        refreshToken: null,
+      });
+      
      try {
     res.clearCookie("accessToken");
     res.clearCookie("refreshToken")

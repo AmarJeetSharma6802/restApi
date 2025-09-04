@@ -30,9 +30,11 @@ app.use("/LinkCovert" , ShortenLinkRouter)
 import userRouter from "./Router/user.router.js"
 app.use("/user",userRouter)
 
-
 import aggragationPopulate from "./Router/aggragationPop.router.js"
 app.use("/aggragationPopulate", aggragationPopulate)
+
+import productionRouter  from "./Router/production.route.js"
+app.use("/production",productionRouter)
 
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
