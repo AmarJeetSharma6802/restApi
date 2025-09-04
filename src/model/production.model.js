@@ -27,7 +27,12 @@ const productionSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    verificationToken: String,
+    verificationToken: {
+      type: String,
+    },
+    verificationTokenExpires: {
+      type: Date,
+    },
   },
   {
     timeseries: true,
