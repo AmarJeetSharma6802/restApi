@@ -4,11 +4,11 @@ import {authUser} from"../middleware/auth.middlware.js"
 
 const router = Router()
 
-router.route("/UserData").get(UserData)
+router.route("/").get(UserData)
 router.route("/auth").post(auth)
 router.route("/verifyEmail").get(verifyEmail)
 router.route("/resetPassword").post(resetPassword)
 router.route("/logout").post(authUser,logout)
 router.route("/deleteUser/:id").delete(deleteUser)
 
-export default router
+export default router 

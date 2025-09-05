@@ -111,6 +111,7 @@ const UserData = async (req, res) => {
   }
   return res.status(200).json({ message: "user is found succefully",foundUser });
 };
+
 const auth = async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -122,50 +123,46 @@ const auth = async (req, res) => {
 
   // ----------- REGISTER -----------
   if (!user) {
-    if (!name) return res.status(400).json({ message: "Name is required" });
+  if (!name) return res.status(400).json({ message: "Name required" });
 
-    const salt = await bcrypt.genSalt(10);
-    const hashPassword = await bcrypt.hash(password, salt);
+  const salt = await bcrypt.genSalt(10);
+  const hashPassword = await bcrypt.hash(password, salt);
 
-    const verificationToken = crypto.randomBytes(32).toString("hex");
-    const verificationTokenExpires = Date.now() + 3600000; // 1 hour
+  const verificationToken = crypto.randomBytes(32).toString("hex");
+  const verificationTokenExpires = Date.now() + 3600000;
 
-    user = await realForm.create({
-      name,
-      email,
-      password: hashPassword,
-      verificationToken,
-      verificationTokenExpires,
+  user = await realForm.create({
+    name,
+    email,
+    password: hashPassword,
+    verificationToken,
+    verificationTokenExpires,
+  });
+
+  const verifyLink = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}&id=${user._id}`;
+
+  try {
+    await transporter.sendMail({
+      from: `"My App" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Verify your email",
+      html: `<p>Click <a href="${verifyLink}">here</a> to verify your email.</p>
+             <p>Note: Link expires in 1 hour.</p>`,
     });
-
-    const verifyLink = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}&id=${user._id}`;
-
-    try {
-      await transporter.sendMail({
-        from: `"My App" <${process.env.EMAIL_USER}>`,
-        to: email,
-        subject: "Verify your email",
-        html: `<p>Click <a href="${verifyLink}">here</a> to verify your email.</p>
-               <p>Note: Link expires in 1 hour.</p>`,
-      });
-    } catch (error) {
-      console.error("Email not sent:", error);
-      return res
-        .status(500)
-        .json({ message: "Verification email could not be sent" });
-    }
-
-    return res.status(201).json({
-      message: "Registration successful. Check your email to verify.",
-    });
+  } catch (error) {
+    console.error("Email not sent:", error);
+    return res.status(500).json({ message: "Verification email could not be sent" });
   }
+
+  return res.status(201).json({
+    message: "Registration successful. Check your email to verify.",
+  });
+}
 
   // ----------- LOGIN -----------
   if (!user.isVerified) {
-    return res
-      .status(400)
-      .json({ message: "Email not verified. Check your inbox." });
-  }
+  return res.status(400).json({ message: "Email not verified" });
+}
 
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) return res.status(400).json({ message: "Incorrect password" });

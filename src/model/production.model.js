@@ -34,9 +34,7 @@ const productionSchema = new mongoose.Schema(
       type: Date,
     },
   },
-  {
-    timeseries: true,
-  }
+  { timestamps: true }
 );
 
 const realForm = mongoose.model("realForm", productionSchema);
