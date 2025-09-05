@@ -113,81 +113,132 @@ const UserData = async (req, res) => {
 };
 
 const auth = async (req, res) => {
-  const { name, email, password } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).json({ message: "Email and password required" });
+  const { name, email, password ,action } = req.body;
+
+
+ if (action === "forgot") {
+
+    if (!email) return res.status(400).json({ message: "Email required" });
+
+    const user = await realForm.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 min
+    await user.save();
+
+    const resetLink = `${process.env.CLIENT_URL}/resetPassword?token=${resetToken}&id=${user._id}`;
+
+    try {
+      await transporter.sendMail({
+        from: `"My App" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: "Reset your password",
+        html: `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>
+               <p>Link expires in 15 min</p>
+               <p>Or use this code: <strong>${resetToken}</strong></p>`,
+      });
+    } catch (err) {
+      console.error("Reset email not sent:", err);
+      return res
+        .status(500)
+        .json({ message: "Reset password email could not be sent" });
+    }
+
+    return res.status(200).json({ message: "Reset link sent to your email" });
   }
 
-  let user = await realForm.findOne({ email });
 
-  // ----------- REGISTER -----------
-  if (!user) {
-  if (!name) return res.status(400).json({ message: "Name required" });
+// register 
 
-  const salt = await bcrypt.genSalt(10);
-  const hashPassword = await bcrypt.hash(password, salt);
+  if (action === "register") {
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
 
-  const verificationToken = crypto.randomBytes(32).toString("hex");
-  const verificationTokenExpires = Date.now() + 3600000;
+    let existing = await realForm.findOne({ email });
+    if (existing) {
+      return res.status(400).json({ message: "Email already registered" });
+    }
 
-  user = await realForm.create({
-    name,
-    email,
-    password: hashPassword,
-    verificationToken,
-    verificationTokenExpires,
-  });
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(password, salt);
 
-  const verifyLink = `${process.env.CLIENT_URL}/verifyEmail?token=${verificationToken}&id=${user._id}`;
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationTokenExpires = Date.now() + 3600000;
 
-  try {
-    await transporter.sendMail({
-      from: `"My App" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "Verify your email",
-      html: `<p>Click <a href="${verifyLink}">here</a> to verify your email.</p>
-             <p>Note: Link expires in 1 hour.</p>`,
+    const user = await realForm.create({
+      name,
+      email,
+      password: hashPassword,
+      verificationToken,
+      verificationTokenExpires,
     });
-  } catch (error) {
-    console.error("Email not sent:", error);
-    return res.status(500).json({ message: "Verification email could not be sent" });
+
+    const verifyLink = `${process.env.CLIENT_URL}/verifyEmail?token=${verificationToken}&id=${user._id}`;
+
+    try {
+      await transporter.sendMail({
+        from: `"My App" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: "Verify your email",
+        html: `<p>Click <a href="${verifyLink}">here</a> to verify your email.</p>
+               <p>Note: Link expires in 1 hour.</p>`,
+      });
+    } catch (error) {
+      console.error("Email not sent:", error);
+      return res
+        .status(500)
+        .json({ message: "Verification email could not be sent" });
+    }
+
+    return res.status(201).json({
+      message: "Registration successful. Check your email to verify.",
+    });
   }
- 
-  return res.status(201).json({
-    message: "Registration successful. Check your email to verify.",
-  });
-}
 
-  // ----------- LOGIN -----------
-  if (!user.isVerified) {
-  return res.status(400).json({ message: "Email not verified" });
-}
 
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return res.status(400).json({ message: "Incorrect password" });
+  if (action === "login") {
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Email and password required" });
+    }
 
-  // Generate tokens
-  const accessToken = jwt.sign(
-    { user_id: user._id, email: user.email },
-    process.env.ACCESSTOKEN,
-    { expiresIn: "15m" }
-  );
+    const user = await realForm.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-  const refreshToken = jwt.sign(
-    { user_id: user._id, email: user.email },
-    process.env.REFRESHTOKEN,
-    { expiresIn: "7d" }
-  );
+    if (!user.isVerified) {
+      return res.status(400).json({ message: "Email not verified" });
+    }
 
-  user.refreshToken = refreshToken;
-  await user.save();
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch)
+      return res.status(400).json({ message: "Incorrect password" });
 
-  return res
-    .cookie("accessToken", accessToken, { httpOnly: true })
-    .cookie("refreshToken", refreshToken, { httpOnly: true })
-    .status(200)
-    .json({ message: "Login successful", refreshToken, user });
+    const accessToken = jwt.sign(
+      { user_id: user._id, email: user.email },
+      process.env.ACCESSTOKEN,
+      { expiresIn: "15m" }
+    );
+
+    const refreshToken = jwt.sign(
+      { user_id: user._id, email: user.email },
+      process.env.REFRESHTOKEN,
+      { expiresIn: "7d" }
+    );
+
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    return res
+      .cookie("accessToken", accessToken, { httpOnly: true })
+      .cookie("refreshToken", refreshToken, { httpOnly: true })
+      .status(200)
+      .json({ message: "Login successful", user });
+  }
     
 };
 
@@ -216,38 +267,38 @@ const verifyEmail = async (req, res) => {
   }
 };
 
-const forgotPassword = async (req, res) => {
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ message: "Email required" });
+// const forgotPassword = async (req, res) => {
+//   const { email } = req.body;
+//   if (!email) return res.status(400).json({ message: "Email required" });
 
-  const user = await realForm.findOne({ email });
-  if (!user) return res.status(404).json({ message: "User not found" });
+//   const user = await realForm.findOne({ email });
+//   if (!user) return res.status(404).json({ message: "User not found" });
 
-  const resetToken = crypto.randomBytes(32).toString("hex");
-  user.resetPasswordToken = resetToken;
-  user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 min
-  await user.save();
+//   const resetToken = crypto.randomBytes(32).toString("hex");
+//   user.resetPasswordToken = resetToken;
+//   user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 min
+//   await user.save();
 
-  const resetLink = `${process.env.CLIENT_URL}/resetPassword?token=${resetToken}&id=${user._id}`;
+//   const resetLink = `${process.env.CLIENT_URL}/resetPassword?token=${resetToken}&id=${user._id}`;
 
-  try {
-    await transporter.sendMail({
-      from: `"My App" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "Reset your password",
-      html: `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>
-             <p>Link expires in 15 min</p>
-              <p>Or use this code: <strong>${resetToken}</strong></p>,
-             `,
+//   try {
+//     await transporter.sendMail({
+//       from: `"My App" <${process.env.EMAIL_USER}>`,
+//       to: email,
+//       subject: "Reset your password",
+//       html: `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>
+//              <p>Link expires in 15 min</p>
+//               <p>Or use this code: <strong>${resetToken}</strong></p>,
+//              `,
              
-    });
-  } catch (err) {
-    console.error("Reset email not sent:", err);
-    return res.status(500).json({ message: "Reset password email could not be sent" });
-  }
+//     });
+//   } catch (err) {
+//     console.error("Reset email not sent:", err);
+//     return res.status(500).json({ message: "Reset password email could not be sent" });
+//   }
 
-  res.status(200).json({ message: "Reset link sent to your email" });
-};
+//   res.status(200).json({ message: "Reset link sent to your email" });
+// };
 
 
 const resetPassword = async (req, res) => {
