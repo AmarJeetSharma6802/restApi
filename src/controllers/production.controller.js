@@ -139,7 +139,7 @@ const auth = async (req, res) => {
     verificationTokenExpires,
   });
 
-  const verifyLink = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}&id=${user._id}`;
+  const verifyLink = `${process.env.CLIENT_URL}/verifyEmail?token=${verificationToken}&id=${user._id}`;
 
   try {
     await transporter.sendMail({
@@ -153,7 +153,7 @@ const auth = async (req, res) => {
     console.error("Email not sent:", error);
     return res.status(500).json({ message: "Verification email could not be sent" });
   }
-
+ 
   return res.status(201).json({
     message: "Registration successful. Check your email to verify.",
   });
@@ -188,6 +188,7 @@ const auth = async (req, res) => {
     .cookie("refreshToken", refreshToken, { httpOnly: true })
     .status(200)
     .json({ message: "Login successful", refreshToken, user });
+    
 };
 
 const verifyEmail = async (req, res) => {
@@ -215,10 +216,44 @@ const verifyEmail = async (req, res) => {
   }
 };
 
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: "Email required" });
+
+  const user = await realForm.findOne({ email });
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  user.resetPasswordToken = resetToken;
+  user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 min
+  await user.save();
+
+  const resetLink = `${process.env.CLIENT_URL}/resetPassword?token=${resetToken}&id=${user._id}`;
+
+  try {
+    await transporter.sendMail({
+      from: `"My App" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Reset your password",
+      html: `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>
+             <p>Link expires in 15 min</p>
+              <p>Or use this code: <strong>${resetToken}</strong></p>,
+             `,
+             
+    });
+  } catch (err) {
+    console.error("Reset email not sent:", err);
+    return res.status(500).json({ message: "Reset password email could not be sent" });
+  }
+
+  res.status(200).json({ message: "Reset link sent to your email" });
+};
+
+
 const resetPassword = async (req, res) => {
   const { token, id, newPassword } = req.body;
 
-  const user = await UserData.findById(id);
+  const user = await realForm.findById(id);
 
   if (
     user.resetPasswordToken !== token ||
@@ -251,7 +286,7 @@ const logout = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
+ 
 const deleteUser = async (req, res) => {
   const { id } = req.params;
 
@@ -259,6 +294,7 @@ const deleteUser = async (req, res) => {
   if (!delelteUser) {
     return res.status(404).json({ message: "user not deleted" });
   }
-  return res.status(200).json({ message: "user is deleted" },delelteUser);
+  return res.status(200).json({ message: "user is deleted" }, delelteUser);
 };
-export { auth, verifyEmail, resetPassword, logout, deleteUser, UserData };
+export { auth, verifyEmail, resetPassword, logout, deleteUser, UserData,forgotPassword };
+ 
