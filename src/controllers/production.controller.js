@@ -20,7 +20,7 @@ import transporter from "../utils/nodemailer.js";
 
 //     const verificationToken = crypto.randomBytes(32).toString("hex");
 
-//     const verificationTokenExpires = Date.now() + 3600000; 
+//     const verificationTokenExpires = Date.now() + 3600000;
 
 //     user = await realForm.create({
 //       name,
@@ -103,16 +103,14 @@ import transporter from "../utils/nodemailer.js";
 //   });
 // };
 
+const UserData = async (req, res) => {
+  const foundUser = await realForm.find();
 
-const UserData = async(req,res)=>{
-  const foundUser = await realForm.find()
-
-    if(!foundUser){
-    return res.status(404).json({message:"user not found"})
+  if (!foundUser) {
+    return res.status(404).json({ message: "user not found", UserData });
   }
-   return res.status(200).json({message:"user is found succefully"})
-
-}
+  return res.status(200).json({ message: "user is found succefully",foundUser });
+};
 const auth = async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -152,7 +150,9 @@ const auth = async (req, res) => {
       });
     } catch (error) {
       console.error("Email not sent:", error);
-      return res.status(500).json({ message: "Verification email could not be sent" });
+      return res
+        .status(500)
+        .json({ message: "Verification email could not be sent" });
     }
 
     return res.status(201).json({
@@ -162,7 +162,9 @@ const auth = async (req, res) => {
 
   // ----------- LOGIN -----------
   if (!user.isVerified) {
-    return res.status(400).json({ message: "Email not verified. Check your inbox." });
+    return res
+      .status(400)
+      .json({ message: "Email not verified. Check your inbox." });
   }
 
   const isMatch = await bcrypt.compare(password, user.password);
@@ -189,8 +191,7 @@ const auth = async (req, res) => {
     .cookie("refreshToken", refreshToken, { httpOnly: true })
     .status(200)
     .json({ message: "Login successful", refreshToken, user });
-}; 
-
+};
 
 const verifyEmail = async (req, res) => {
   try {
@@ -223,42 +224,44 @@ const resetPassword = async (req, res) => {
   const user = await UserData.findById(id);
 
   if (
-    user.resetPasswordToken !== token || user.resetPasswordExpires < Date.now()
+    user.resetPasswordToken !== token ||
+    user.resetPasswordExpires < Date.now()
   ) {
-     return res.status(400).json({ message: "Token expired or invalid" });
+    return res.status(400).json({ message: "Token expired or invalid" });
   }
-  const salt = await bcrypt.genSalt(10)
-  const hashPassword = await bcrypt.hash(newPassword,salt)
+  const salt = await bcrypt.genSalt(10);
+  const hashPassword = await bcrypt.hash(newPassword, salt);
 
-   user.resetPasswordToken = undefined;
-    user.resetPasswordExpires = undefined;
-    await user.save();
+  user.password = hashPassword;
 
-      res.json({ message: "Password reset successfully" });
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
+  await user.save();
+
+  res.json({ message: "Password reset successfully" });
 };
-const logout = async(req,res)=>{
+const logout = async (req, res) => {
+  await realForm.findByIdAndUpdate(req.user._id, {
+    refreshToken: null,
+  });
 
-    await realForm.findByIdAndUpdate(req.user._id, {
-        refreshToken: null,
-      });
-
-     try {
+  try {
     res.clearCookie("accessToken");
-    res.clearCookie("refreshToken")
+    res.clearCookie("refreshToken");
     res.json({ message: "Logout successful" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Server error" });
   }
-}
+};
 
-const deleteUser = async(req,res)=>{
-  const{id} = req.params
+const deleteUser = async (req, res) => {
+  const { id } = req.params;
 
-  const delelteUser = await realForm.findByIdAndDelete(id)
-  if(!delelteUser){
-    return res.status(404).json({message:"user not deleted"})
+  const delelteUser = await realForm.findByIdAndDelete(id);
+  if (!delelteUser) {
+    return res.status(404).json({ message: "user not deleted" });
   }
-   return res.status(200).json({message:"user is deleted"})
-}
-export { auth, verifyEmail,resetPassword,logout,deleteUser,UserData };
+  return res.status(200).json({ message: "user is deleted" },delelteUser);
+};
+export { auth, verifyEmail, resetPassword, logout, deleteUser, UserData };

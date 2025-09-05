@@ -9,6 +9,6 @@ router.route("/auth").post(auth)
 router.route("/verifyEmail").get(verifyEmail)
 router.route("/resetPassword").post(resetPassword)
 router.route("/logout").post(authUser,logout)
-router.route("/deleteUser").delete(deleteUser)
+router.route("/deleteUser/:id").delete(deleteUser)
 
 export default router
