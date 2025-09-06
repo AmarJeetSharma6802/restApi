@@ -47,7 +47,7 @@ const popUploadedVideo = async (req, res) => {
 
     return res.status(200).json({
       message: "Video uploaded successfully",
-      data: CombindUserData
+      data: createData
     });
 
   } catch (error) {

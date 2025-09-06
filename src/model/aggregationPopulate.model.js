@@ -14,7 +14,7 @@ const videoDetailsSchema = new mongoose.Schema({
     type: Number,
     required: true
   }
-})
+},{ _id: false }) //video ke document ka id nahi chahiye to 
 
 const arrPopSchema =  mongoose.Schema({
     user:{
