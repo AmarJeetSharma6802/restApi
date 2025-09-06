@@ -108,7 +108,11 @@ try {
     id,
     {
       videoTitle,
-      video:uploadVideo.secure_url
+      video: {
+      url: uploadVideo.secure_url,
+      public_id: uploadVideo.public_id,
+      duration: uploadVideo.duration
+    }
     },
     {
       new:true
