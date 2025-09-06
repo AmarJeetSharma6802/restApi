@@ -1,6 +1,21 @@
 import mongoose from "mongoose";
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
 
+const videoDetailsSchema = new mongoose.Schema({
+    url:{
+        type:String,
+        required:true
+    },
+    public_id: {
+    type: String,
+    required: true
+  },
+  duration: {
+    type: Number,
+    required: true
+  }
+})
+
 const arrPopSchema =  mongoose.Schema({
     user:{
         type:mongoose.Schema.Types.ObjectId,
@@ -10,7 +25,7 @@ const arrPopSchema =  mongoose.Schema({
         type:String,
     },
     video:{
-         type:String,
+         type:videoDetailsSchema,
     }
 
     

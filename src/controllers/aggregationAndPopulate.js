@@ -34,8 +34,13 @@ const popUploadedVideo = async (req, res) => {
 
     const createData = await arrPop.create({
       videoTitle,
-      video: Cloudinary.secure_url,
-      user: userId
+      user: userId,
+      video: {
+        url:Cloudinary.secure_url,
+        public_id:Cloudinary.public_id,
+        duration:Cloudinary.duration
+      },
+
     });
 
     const CombindUserData = await arrPop.find().populate("user");
