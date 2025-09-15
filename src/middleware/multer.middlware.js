@@ -39,3 +39,22 @@ const storageVideo = multer.memoryStorage()
 const uploadVideo = multer({storage:storageVideo})
 
 export const uploadedVideo = uploadVideo.single("video");
+
+
+// multiple images multer 
+
+// const multipleImages = multer.memoryStorage()
+// const uploadImages = multer({storage:multipleImages})
+
+// export const uploadedImages = uploadImages.array("images", 4); 
+
+// import multer from "multer";
+
+const multipleImages = multer.memoryStorage();
+
+const uploadImages = multer({ storage: multipleImages });
+
+export const uploadedImages = uploadImages.fields([
+  { name: "images", maxCount: 5 },     
+  // { name: "thumbnail", maxCount: 1 },
+]);
