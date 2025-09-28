@@ -400,6 +400,39 @@ user.resetPasswordExpires = undefined;
   res.status(200).json({ message: "Password reset successfully" });
 };
 
+const admin = async(req,res)=>{
+
+  try {
+    const { userId, name, email, role } = req.body;
+
+    if (!userId || !name || !email) {
+      return res.status(400).json({ message: "UserId, name, and email required" });
+    }
+
+          const updatedUser = await UserData.findByIdAndUpdate(
+      userId,
+      { $set: { name, email, role } },
+      { new: true }
+    ).select("-password -refreshToken -__v")
+        return res.status(200).json({ message: "User updated successfully", updatedUser });
+
+  } catch (error) {
+    return res.status(500).json({ message: "Update failed", error: err.message });
+  }
+
+}
+
+const deleteUser = async(req,res)=>{
+
+  const {userId} = req.body
+  
+  if (!userId) return res.status(400).json({ message: "UserId required" });
+
+ const deleteUser=  await UserData.findByIdAndDelete(userId);
+    return res.status(200).json({ message: "User deleted successfully" ,deleteUser });
+}
+
+
 export {
   uploadData,
   getData,
@@ -411,5 +444,7 @@ export {
   findUserById,
   refreshToken,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  admin,
+  deleteUser
 };
