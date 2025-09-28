@@ -18,7 +18,7 @@ router.route("/userChangePassword").post(authUser,userChangePassword);
 router.route("/refreshToken").post(refreshToken);
 router.route("/forgotPassword").post(forgotPassword);
 router.route("/resetPassword").post(resetPassword);
-router.route("/admin").patch(authUser, authorize("admin","developer"), admin);
+router.route("/admin").patch(authUser, authorize("admin","developer"),uploadImage , admin);
 router.route("/deleteUser").delete(authUser, authorize("admin","developer"), deleteUser);
 
 
