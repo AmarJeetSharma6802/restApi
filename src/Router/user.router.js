@@ -1,7 +1,8 @@
 import Router from "express";
 import {uploadImage} from "../middleware/multer.middlware.js"
-import {uploadData,getData,loginUser,deleteAccount,UserloggedOut,updateAccount,userChangePassword,findUserById,refreshToken,forgotPassword,resetPassword} from "../controllers/user.controller.js"
+import {uploadData,getData,loginUser,deleteAccount,UserloggedOut,updateAccount,userChangePassword,findUserById,refreshToken,forgotPassword,resetPassword,admin,deleteUser} from "../controllers/user.controller.js"
 import {authUser} from"../middleware/auth.middlware.js"
+import {authorize} from "../middleware/authorize.js"
 
 const router = Router()
 
@@ -17,6 +18,9 @@ router.route("/userChangePassword").post(authUser,userChangePassword);
 router.route("/refreshToken").post(refreshToken);
 router.route("/forgotPassword").post(forgotPassword);
 router.route("/resetPassword").post(resetPassword);
+router.route("/admin").patch(authUser, authorize("admin","developer"), admin);
+router.route("/deleteUser").delete(authUser, authorize("admin","developer"), deleteUser);
+
 
 
 

@@ -6,7 +6,6 @@ import transporter from "../utils/nodemailer.js";
 import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
 
-
 const getData = async (req, res) => {
   const foundUser = await UserData.find();
 
@@ -19,7 +18,7 @@ const getData = async (req, res) => {
 
 const uploadData = async (req, res) => {
   try {
-    const { name, email, password, comparePassword } = req.body;
+    const { name, email, password, comparePassword, role } = req.body;
     const file = req.file;
 
     //    console.log("req.body =",req.body)
@@ -64,6 +63,7 @@ const uploadData = async (req, res) => {
       email,
       password: hashPassword,
       image: uploadedImage.url,
+      role,
     });
 
     const accessToken = jwt.sign(
@@ -346,7 +346,7 @@ const forgotPassword = async (req, res) => {
   // console.log("Generated Reset Token:", resetToken);
 
   user.resetPasswordToken = resetToken;
-  user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; 
+  user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
   await user.save();
 
   const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
@@ -367,13 +367,13 @@ const forgotPassword = async (req, res) => {
     console.error(error);
     res.status(500).json({ message: "Email could not be sent" });
   }
-}
+};
 
 const resetPassword = async (req, res) => {
   // const { token, newPassword } = req.body;
 
-     const token = req.body.token?.trim();  
-      const newPassword = req.body.newPassword;
+  const token = req.body.token?.trim();
+  const newPassword = req.body.newPassword;
 
   // console.log("Received Token:", token);
 
@@ -384,54 +384,63 @@ const resetPassword = async (req, res) => {
 
   // console.log("User from DB:", user);
 
-  if (!user) return res.status(400).json({ message: "Invalid or expired token" });
+  if (!user)
+    return res.status(400).json({ message: "Invalid or expired token" });
 
   const salt = await bcrypt.genSalt(10);
   const hashPassword = await bcrypt.hash(newPassword, salt);
   // user.password = await bcrypt.hash(newPassword, salt);
 
-user.password = hashPassword;
+  user.password = hashPassword;
 
-user.resetPasswordToken = undefined;
-user.resetPasswordExpires = undefined;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
 
   await user.save();
 
   res.status(200).json({ message: "Password reset successfully" });
 };
 
-const admin = async(req,res)=>{
-
+const admin = async (req, res) => {
   try {
     const { userId, name, email, role } = req.body;
+    const file = req.file;
 
     if (!userId || !name || !email) {
-      return res.status(400).json({ message: "UserId, name, and email required" });
+      return res
+        .status(400)
+        .json({ message: "UserId, name, and email required" });
     }
+     const uploadedImage = await imagekit.upload({
+    file: file.buffer,
+    fileName: file.originalname,
+  });
 
-          const updatedUser = await UserData.findByIdAndUpdate(
+    const updatedUser = await UserData.findByIdAndUpdate(
       userId,
-      { $set: { name, email, role } },
+      { $set: { name, email, role,image:uploadedImage.url } },
       { new: true }
-    ).select("-password -refreshToken -__v")
-        return res.status(200).json({ message: "User updated successfully", updatedUser });
-
+    ).select("-password -refreshToken -__v");
+    return res
+      .status(200)
+      .json({ message: "User updated successfully", updatedUser });
   } catch (error) {
-    return res.status(500).json({ message: "Update failed", error: err.message });
+    return res
+      .status(500)
+      .json({ message: "Update failed", error: err.message });
   }
+};
 
-}
+const deleteUser = async (req, res) => {
+  const { userId } = req.body;
 
-const deleteUser = async(req,res)=>{
-
-  const {userId} = req.body
-  
   if (!userId) return res.status(400).json({ message: "UserId required" });
 
- const deleteUser=  await UserData.findByIdAndDelete(userId);
-    return res.status(200).json({ message: "User deleted successfully" ,deleteUser });
-}
-
+  const deleteUser = await UserData.findByIdAndDelete(userId);
+  return res
+    .status(200)
+    .json({ message: "User deleted successfully", deleteUser });
+};
 
 export {
   uploadData,
@@ -446,5 +455,5 @@ export {
   forgotPassword,
   resetPassword,
   admin,
-  deleteUser
+  deleteUser,
 };
