@@ -381,7 +381,6 @@ const resetPassword = async (req, res) => {
     resetPasswordToken: token,
     resetPasswordExpires: { $gt: Date.now() },
   });
-
   // console.log("User from DB:", user);
 
   if (!user)
@@ -421,6 +420,7 @@ const admin = async (req, res) => {
       { $set: { name, email, role,image:uploadedImage.url } },
       { new: true }
     ).select("-password -refreshToken -__v");
+    
     return res
       .status(200)
       .json({ message: "User updated successfully", updatedUser });
