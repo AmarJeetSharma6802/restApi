@@ -67,7 +67,7 @@ const uploadData = async (req, res) => {
     });
 
     const accessToken = jwt.sign(
-      { _id: createData._id, email: createData.email },
+      { user_id: createData._id, email: createData.email },
       process.env.ACCESSTOKEN,
       { expiresIn: "1d" }
     );

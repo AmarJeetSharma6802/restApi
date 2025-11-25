@@ -37,3 +37,9 @@ const arrPop = mongoose.model("arrPop", arrPopSchema)
 
 export default arrPop
 
+//  $lookup: {
+//       from: "restapis",              // 👈 ye collection ka naam hota hai (model ka lowercase + 's')
+//       localField: "user",            // arrPop collection me field
+//       foreignField: "_id",           // RestApi collection ka field
+//       as: "userDetails"              // result array name
+//     }

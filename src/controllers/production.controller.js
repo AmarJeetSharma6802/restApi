@@ -255,6 +255,7 @@ const verifyEmail = async (req, res) => {
     if (user.verificationTokenExpires < Date.now()) {
       return res.status(400).send("Verification link expired");
     }
+    
     user.isVerified = true;
     user.verificationToken = undefined;
     user.verificationTokenExpires = undefined;
@@ -323,6 +324,8 @@ const resetPassword = async (req, res) => {
 
   res.json({ message: "Password reset successfully" });
 };
+
+
 const logout = async (req, res) => {
   await realForm.findByIdAndUpdate(req.user._id, {
     refreshToken: null,
