@@ -116,43 +116,7 @@ const auth = async (req, res) => {
 
   const { name, email, password ,action } = req.body;
 
-
- if (action === "forgot") {
-
-    if (!email) return res.status(400).json({ message: "Email required" });
-
-    const user = await realForm.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    const resetToken = crypto.randomBytes(32).toString("hex");
-    user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 min
-    await user.save();
-
-    const resetLink = `${process.env.CLIENT_URL}/resetPassword?token=${resetToken}&id=${user._id}`;
-
-    try {
-      await transporter.sendMail({
-        from: `"My App" <${process.env.EMAIL_USER}>`,
-        to: email,
-        subject: "Reset your password",
-        html: `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>
-               <p>Link expires in 15 min</p>
-               <p>Or use this code: <strong>${resetToken}</strong></p>`,
-      });
-    } catch (err) {
-      console.error("Reset email not sent:", err);
-      return res
-        .status(500)
-        .json({ message: "Reset password email could not be sent" });
-    }
-
-    return res.status(200).json({ message: "Reset link sent to your email" });
-  }
-
-
-// register 
-
+ 
   if (action === "register") {
     if (!name || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
@@ -199,6 +163,38 @@ const auth = async (req, res) => {
     });
   }
 
+ if (action === "forgot") {
+
+    if (!email) return res.status(400).json({ message: "Email required" });
+
+    const user = await realForm.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 min
+    await user.save();
+
+    const resetLink = `${process.env.CLIENT_URL}/resetPassword?token=${resetToken}&id=${user._id}`;
+
+    try {
+      await transporter.sendMail({
+        from: `"My App" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: "Reset your password",
+        html: `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>
+               <p>Link expires in 15 min</p>
+               <p>Or use this code: <strong>${resetToken}</strong></p>`,
+      });
+    } catch (err) {
+      console.error("Reset email not sent:", err);
+      return res
+        .status(500)
+        .json({ message: "Reset password email could not be sent" });
+    }
+
+    return res.status(200).json({ message: "Reset link sent to your email" });
+  }
 
   if (action === "login") {
     if (!email || !password) {
