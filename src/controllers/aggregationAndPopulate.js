@@ -16,6 +16,7 @@ const getData = async(req,res)=>{
     
 }
 
+// pure node js code 
 const popUploadedVideo = async (req, res) => {
   try {
     const { videoTitle, userId } = req.body;
@@ -29,6 +30,7 @@ const popUploadedVideo = async (req, res) => {
     //   fileName: file.originalname,
     //   folder: "video"
     // });
+
     const Cloudinary = await uploadOnCloudinary(file.buffer, "video")
 
 
