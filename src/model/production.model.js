@@ -33,6 +33,11 @@ const productionSchema = new mongoose.Schema(
     verificationTokenExpires: {
       type: Date,
     },
+
+    // after add this
+
+    lastEmailSentAt: { type: Date },
+    emailSendCount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
