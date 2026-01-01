@@ -1,4 +1,4 @@
-const canSendEmail = (user) => {
+export const canSendEmail = (user) => {
   const now = Date.now();
 
   // 60 sec cooldown

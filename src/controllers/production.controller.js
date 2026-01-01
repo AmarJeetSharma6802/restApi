@@ -121,6 +121,7 @@ const auth = async (req, res) => {
     if (!name || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
+    
 
     let existing = await realForm.findOne({ email });
     if (existing) {
