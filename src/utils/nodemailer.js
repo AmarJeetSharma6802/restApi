@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+// import cron from "node-cron";
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -11,3 +12,28 @@ const transporter = nodemailer.createTransport({
 });
 
 export default transporter;
+
+
+// cron job  coming soon for email automation 
+
+// cron.schedule("0 9 * * *", async () => {
+//   try {
+//     await transporter.sendMail({
+//       from: "yourmail@gmail.com",
+//       to: "client@email.com",
+//       subject: "Good Morning 🚀",
+//       text: "This is an automated daily email",
+//     });
+
+//     console.log("✅ Email sent at 9 AM");
+//   } catch (error) {
+//     console.error("❌ Email error:", error);
+//   }
+// });
+
+// ┌─ min (0)
+// │ ┌─ hour (9)
+// │ │ ┌─ day
+// │ │ │ ┌─ month
+// │ │ │ │ ┌─ week
+// 0  9  *  *  *
