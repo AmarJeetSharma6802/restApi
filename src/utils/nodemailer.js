@@ -21,13 +21,13 @@ export default transporter;
 //     await transporter.sendMail({
 //       from: "yourmail@gmail.com",
 //       to: "client@email.com",
-//       subject: "Good Morning 🚀",
+//       subject: "Good Morning ",
 //       text: "This is an automated daily email",
 //     });
 
-//     console.log("✅ Email sent at 9 AM");
+//     console.log(" Email sent at 9 AM");
 //   } catch (error) {
-//     console.error("❌ Email error:", error);
+//     console.error(" Email error:", error);
 //   }
 // });
 
