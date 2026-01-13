@@ -162,6 +162,7 @@ const auth = async (req, res) => {
     return res.status(201).json({
       message: "Registration successful. Check your email to verify.",
     });
+
   }
 
  if (action === "forgot") {
@@ -237,6 +238,10 @@ const auth = async (req, res) => {
       .json({ message: "Login successful", user });
   }
     
+    return res.status(400).json({
+      message: "Invalid action",
+      receivedAction: action,
+    });
 };
 
 const verifyEmail = async (req, res) => {

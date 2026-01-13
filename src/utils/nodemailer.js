@@ -37,3 +37,12 @@ export default transporter;
 // │ │ │ ┌─ month
 // │ │ │ │ ┌─ week
 // 0  9  *  *  *
+
+// 30 * 24 * 60 * 60 * 1000
+// 30	days
+// 24	hours
+// 60	minutes
+// 60	seconds
+// 1000	milliseconds (JS time ms me hota hai)
+
+// pdfkit wen can build our first pdf 
