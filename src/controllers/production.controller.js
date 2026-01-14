@@ -109,19 +109,18 @@ const UserData = async (req, res) => {
   if (!foundUser) {
     return res.status(404).json({ message: "user not found", UserData });
   }
-  return res.status(200).json({ message: "user is found succefully",foundUser });
+  return res
+    .status(200)
+    .json({ message: "user is found succefully", foundUser });
 };
 
 const auth = async (req, res) => {
+  const { name, email, password, action } = req.body;
 
-  const { name, email, password ,action } = req.body;
-
- 
   if (action === "register") {
     if (!name || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
-    
 
     let existing = await realForm.findOne({ email });
     if (existing) {
@@ -162,11 +161,9 @@ const auth = async (req, res) => {
     return res.status(201).json({
       message: "Registration successful. Check your email to verify.",
     });
-
   }
 
- if (action === "forgot") {
-
+  if (action === "forgot") {
     if (!email) return res.status(400).json({ message: "Email required" });
 
     const user = await realForm.findOne({ email });
@@ -200,9 +197,7 @@ const auth = async (req, res) => {
 
   if (action === "login") {
     if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Email and password required" });
+      return res.status(400).json({ message: "Email and password required" });
     }
 
     const user = await realForm.findOne({ email });
@@ -232,16 +227,30 @@ const auth = async (req, res) => {
     await user.save();
 
     return res
-      .cookie("accessToken", accessToken, { httpOnly: true })
-      .cookie("refreshToken", refreshToken, { httpOnly: true })
+      .cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "None",
+        maxAge: 15 * 60 * 1000,
+      })
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "None",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      })
       .status(200)
       .json({ message: "Login successful", user });
   }
-    
-    return res.status(400).json({
-      message: "Invalid action",
-      receivedAction: action,
-    });
+
+  return res.status(400).json({
+    message: "Invalid action",
+    receivedAction: action,
+  });
+  //     Koi response nahi
+  //  Frontend wait karta rahega
+  //  data.message undefined
+  //  Bugs + confusion
 };
 
 const verifyEmail = async (req, res) => {
@@ -257,7 +266,7 @@ const verifyEmail = async (req, res) => {
     if (user.verificationTokenExpires < Date.now()) {
       return res.status(400).send("Verification link expired");
     }
-    
+
     user.isVerified = true;
     user.verificationToken = undefined;
     user.verificationTokenExpires = undefined;
@@ -293,7 +302,7 @@ const verifyEmail = async (req, res) => {
 //              <p>Link expires in 15 min</p>
 //               <p>Or use this code: <strong>${resetToken}</strong></p>,
 //              `,
-             
+
 //     });
 //   } catch (err) {
 //     console.error("Reset email not sent:", err);
@@ -302,7 +311,6 @@ const verifyEmail = async (req, res) => {
 
 //   res.status(200).json({ message: "Reset link sent to your email" });
 // };
-
 
 const resetPassword = async (req, res) => {
   const { token, id, newPassword } = req.body;
@@ -327,7 +335,6 @@ const resetPassword = async (req, res) => {
   res.json({ message: "Password reset successfully" });
 };
 
-
 const logout = async (req, res) => {
   await realForm.findByIdAndUpdate(req.user._id, {
     refreshToken: null,
@@ -342,7 +349,7 @@ const logout = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
- 
+
 const deleteUser = async (req, res) => {
   const { id } = req.params;
 
@@ -353,4 +360,3 @@ const deleteUser = async (req, res) => {
   return res.status(200).json({ message: "user is deleted" }, delelteUser);
 };
 export { auth, verifyEmail, resetPassword, logout, deleteUser, UserData };
- 
