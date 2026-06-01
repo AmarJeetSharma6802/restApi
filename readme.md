@@ -1,6 +1,6 @@
-MONGODB_URL = mongodb://localhost:27017/ShortenLink
-MONGODB_URI = mongodb+srv://Amarsharma8882:EcommerceBackend888680@cluster5.56m0c.mongodb.net/EcommerceBackend
-MONGODB_EXPRESS = mongodb://mongoDB:mongoDB@localhost:27017/EcommerceBackend?authSource=admin
+MONGODB_URL = /ShortenLink
+MONGODB_URI =/EcommerceBackend
+MONGODB_EXPRESS = 
 
 CONVERT_URL = http://localhost:3000/LinkCovert
 
