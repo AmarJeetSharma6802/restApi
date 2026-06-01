@@ -96,6 +96,7 @@ const ShowItem = async(req,res)=>{
 
 const UpdateImage = async (req, res) => {
     const { id } = req.params;
+    
         const file = req.files?.image?.[0];
 
     const{name,price} = req.body
@@ -128,6 +129,7 @@ const UpdateImage = async (req, res) => {
 const DeleteItem = async(req,res)=>{
 
     const id  = req.params.id
+
     const findItem = await RestApi.findByIdAndDelete(id)
 
     if(!findItem){
